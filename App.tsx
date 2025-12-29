@@ -165,14 +165,28 @@ const App: React.FC = () => {
   const startLive = async () => {
     try {
       setStatusMsg('Sincronizzazione...');
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      
+      // Riattiva o crea gli AudioContext
       if (!audioContextInRef.current) {
         audioContextInRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
         audioContextOutRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
         outputNodeRef.current = audioContextOutRef.current.createGain();
         outputNodeRef.current.connect(audioContextOutRef.current.destination);
+      } else {
+        await audioContextInRef.current.resume();
+        await audioContextOutRef.current.resume();
       }
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+      if (!process.env.API_KEY) {
+        setStatusMsg('Configura API Key');
+        return;
+      }
+
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true }).catch(() => {
+        throw new Error("PERMISSION_DENIED");
+      });
+
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const sessionPromise = ai.live.connect({
         model: 'gemini-2.5-flash-native-audio-preview-09-2025',
         config: {
@@ -220,14 +234,22 @@ const App: React.FC = () => {
               }
             }
           },
-          onerror: () => setIsLive(false),
+          onerror: (e) => {
+            console.error(e);
+            setStatusMsg('Errore API');
+            setIsLive(false);
+          },
           onclose: () => setIsLive(false)
         }
       });
       sessionRef.current = await sessionPromise;
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      setStatusMsg('Errore Mic');
+      if (err.message === "PERMISSION_DENIED") {
+        setStatusMsg('Mic Negato');
+      } else {
+        setStatusMsg('Errore Connessione');
+      }
     }
   };
 

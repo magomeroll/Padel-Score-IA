@@ -1,0 +1,7 @@
+{
+  "name": "Padel Voice Scorekeeper",
+  "description": "Un segnapunti per Padel controllato interamente dalla voce, ottimizzato per l'uso con microfoni Bluetooth durante il gioco.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}

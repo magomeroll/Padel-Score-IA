@@ -35,7 +35,6 @@ const App: React.FC = () => {
   const [statusMsg, setStatusMsg] = useState('Pronto');
   const [lastAction, setLastAction] = useState<string>('');
   
-  // Gestione API Key
   const [apiKey, setApiKey] = useState<string>(() => localStorage.getItem('GEMINI_API_KEY') || '');
   const [showKeyModal, setShowKeyModal] = useState<boolean>(!localStorage.getItem('GEMINI_API_KEY'));
   const [tempKey, setTempKey] = useState(apiKey);
@@ -268,133 +267,115 @@ const App: React.FC = () => {
     (config.deuceMode === DeuceMode.IMMEDIATE_KILLER || score.deuceCount >= 2);
 
   return (
-    <div className="min-h-screen bg-[#020617] text-white flex flex-col font-sans select-none overflow-hidden">
+    <div className="h-screen w-screen bg-[#020617] text-white flex flex-col font-sans select-none overflow-hidden touch-none">
       {/* Key Modal */}
       {showKeyModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-xl p-6">
-          <div className="bg-slate-900 border-2 border-blue-500/50 rounded-[2.5rem] w-full max-w-md p-8 shadow-[0_0_50px_rgba(59,130,246,0.3)] animate-fade-in">
-            <h2 className="text-3xl font-black italic text-blue-500 mb-2">CONFIGURA IA</h2>
-            <p className="text-slate-400 text-sm mb-6">Inserisci la tua Gemini API Key per attivare l'arbitro vocale. Verrà salvata solo su questo dispositivo.</p>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-xl p-6">
+          <div className="bg-slate-900 border-2 border-blue-500/50 rounded-[2.5rem] w-full max-w-md p-8 shadow-2xl">
+            <h2 className="text-2xl font-black italic text-blue-500 mb-2">CONFIGURA IA</h2>
+            <p className="text-slate-400 text-xs mb-6">Inserisci la tua Gemini API Key. Verrà salvata solo qui.</p>
             <input 
               type="password" 
               value={tempKey} 
               onChange={(e) => setTempKey(e.target.value)}
-              placeholder="Incolla qui la chiave..."
-              className="w-full bg-black/50 border border-slate-700 rounded-2xl p-4 text-blue-400 font-mono text-sm mb-6 outline-none focus:border-blue-500 transition-colors"
+              placeholder="Chiave API..."
+              className="w-full bg-black/50 border border-slate-700 rounded-2xl p-4 text-blue-400 font-mono text-sm mb-6 outline-none"
             />
             <div className="flex gap-3">
-              <button 
-                onClick={saveApiKey}
-                className="flex-1 bg-blue-600 py-4 rounded-2xl font-black uppercase text-xs shadow-[0_4px_0_#1d4ed8] active:translate-y-1 active:shadow-none transition-all"
-              >
-                Salva e Chiudi
-              </button>
-              {apiKey && (
-                <button 
-                  onClick={() => setShowKeyModal(false)}
-                  className="px-6 bg-slate-800 py-4 rounded-2xl font-black uppercase text-xs"
-                >
-                  Annulla
-                </button>
-              )}
+              <button onClick={saveApiKey} className="flex-1 bg-blue-600 py-4 rounded-2xl font-black uppercase text-xs shadow-lg">Salva</button>
+              {apiKey && <button onClick={() => setShowKeyModal(false)} className="px-6 bg-slate-800 py-4 rounded-2xl font-black uppercase text-xs">Esci</button>}
             </div>
-            <p className="mt-6 text-[10px] text-slate-500 text-center uppercase tracking-widest font-bold">
-              Non hai una chiave? <a href="https://aistudio.google.com/app/apikey" target="_blank" className="text-blue-500 underline">Ottienila gratis qui</a>
-            </p>
           </div>
         </div>
       )}
 
-      <header className="p-4 flex justify-between items-center bg-slate-900/80 border-b border-slate-800 backdrop-blur-md z-10 shadow-lg">
-        <div className="flex flex-col">
-          <h1 className="text-2xl font-black italic text-blue-500 tracking-tighter leading-none">PADEL VOICE <span className="text-white">ULTRA</span></h1>
-          <div className="flex items-center gap-2 mt-1">
-            <div className={`w-2 h-2 rounded-full ${isLive ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
-            <span className="text-[10px] uppercase font-black text-slate-400 tracking-widest">{statusMsg}</span>
+      {/* Header compatto per Mobile */}
+      <header className="px-4 py-3 flex justify-between items-center bg-slate-900/50 border-b border-white/5 backdrop-blur-md shrink-0">
+        <div>
+          <h1 className="text-lg font-black italic text-blue-500 leading-none">PV <span className="text-white">ULTRA</span></h1>
+          <div className="flex items-center gap-1.5 mt-0.5">
+            <div className={`w-1.5 h-1.5 rounded-full ${isLive ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
+            <span className="text-[8px] uppercase font-black text-slate-400 tracking-tighter">{statusMsg}</span>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <button 
-            onClick={() => setShowKeyModal(true)}
-            className="p-3 bg-slate-800 hover:bg-slate-700 rounded-xl transition-colors text-slate-400"
-            title="Impostazioni API"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-          </button>
+        
+        <div className="flex items-center gap-2">
+          {lastAction && <div className="hidden sm:block text-[9px] font-black uppercase text-blue-400/80 bg-blue-500/10 px-2 py-1 rounded-lg border border-blue-500/20">{lastAction}</div>}
+          <button onClick={() => setShowKeyModal(true)} className="p-2.5 bg-slate-800/80 rounded-xl text-slate-400"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg></button>
           <button 
             onClick={isLive ? () => { sessionRef.current?.close(); setIsLive(false); } : startLive}
-            className={`px-6 md:px-8 py-4 rounded-2xl font-black text-xs uppercase transition-all shadow-[0_6px_0_#1d4ed8] ${isLive ? 'bg-red-600 shadow-[0_6px_0_#991b1b]' : 'bg-blue-600'} active:translate-y-1 active:shadow-none hover:scale-105`}
+            className={`px-4 py-2.5 rounded-xl font-black text-[10px] uppercase transition-all ${isLive ? 'bg-red-600 shadow-[0_3px_0_#991b1b]' : 'bg-blue-600 shadow-[0_3px_0_#1d4ed8]'} active:translate-y-0.5 active:shadow-none`}
           >
-            {isLive ? 'STOP ARBITRO' : '🎤 ATTIVA VOCE'}
+            {isLive ? 'STOP' : 'ATTIVA VOCE'}
           </button>
         </div>
       </header>
 
-      <main className="flex-1 grid grid-cols-1 md:grid-cols-2 p-4 gap-6">
-        <div className="bg-gradient-to-br from-blue-600/20 to-blue-900/40 rounded-[4rem] border-2 border-blue-500/30 flex flex-col items-center justify-center relative shadow-2xl overflow-hidden">
-          <span className="absolute top-10 text-blue-400 font-black text-3xl uppercase tracking-[1.5em] opacity-30">BLU</span>
-          <span className="score-font text-[18rem] md:text-[25rem] font-black leading-none text-blue-500 drop-shadow-[0_0_40px_rgba(59,130,246,0.5)]">
+      {/* Main Score Area - Verticale su Mobile */}
+      <main className="flex-1 flex flex-col md:flex-row p-2 gap-2 overflow-hidden">
+        {/* Team BLU */}
+        <div className="flex-1 bg-gradient-to-br from-blue-600/10 to-blue-900/30 rounded-[2.5rem] border border-blue-500/20 flex flex-col items-center justify-center relative overflow-hidden group">
+          <span className="absolute top-4 left-6 text-blue-500/30 font-black text-xl tracking-[0.5em] uppercase pointer-events-none">BLU</span>
+          <div className="score-font text-[8rem] sm:text-[10rem] md:text-[15rem] font-black leading-none text-blue-500 drop-shadow-[0_0_30px_rgba(59,130,246,0.4)] score-change">
             {score.isTieBreak ? score.tieBreakPoints.us : (score.points.us === 4 ? 'AD' : POINT_VALUES[score.points.us])}
-          </span>
-          {isKillerPoint && <div className="absolute bottom-12 bg-yellow-500 text-black px-12 py-4 rounded-full font-black text-3xl uppercase animate-bounce border-4 border-black z-10">KILLER POINT</div>}
-          {!isKillerPoint && score.points.us === 4 && <div className="absolute bottom-12 bg-blue-500 text-white px-10 py-3 rounded-full font-black text-2xl uppercase">VANTAGGIO</div>}
+          </div>
+          {isKillerPoint && <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rotate-[-10deg] bg-yellow-500 text-black px-6 py-2 rounded-lg font-black text-xl uppercase border-2 border-black z-10 pointer-events-none animate-pulse">KILLER</div>}
+          {!isKillerPoint && score.points.us === 4 && <div className="mt-[-1rem] bg-blue-500 text-white px-4 py-1 rounded-full font-black text-[10px] uppercase">VANTAGGIO</div>}
+          {/* Hitbox per manual override se necessario */}
+          <div className="absolute inset-0 z-0" onClick={() => updateScore('us')}></div>
         </div>
 
-        <div className="bg-gradient-to-br from-red-600/20 to-red-900/40 rounded-[4rem] border-2 border-red-500/30 flex flex-col items-center justify-center relative shadow-2xl overflow-hidden">
-          <span className="absolute top-10 text-red-400 font-black text-3xl uppercase tracking-[1.5em] opacity-30">ROSSO</span>
-          <span className="score-font text-[18rem] md:text-[25rem] font-black leading-none text-red-500 drop-shadow-[0_0_40px_rgba(239,68,68,0.5)]">
+        {/* Team ROSSO */}
+        <div className="flex-1 bg-gradient-to-br from-red-600/10 to-red-900/30 rounded-[2.5rem] border border-red-500/20 flex flex-col items-center justify-center relative overflow-hidden group">
+          <span className="absolute top-4 left-6 text-red-500/30 font-black text-xl tracking-[0.5em] uppercase pointer-events-none">ROSSO</span>
+          <div className="score-font text-[8rem] sm:text-[10rem] md:text-[15rem] font-black leading-none text-red-500 drop-shadow-[0_0_30px_rgba(239,68,68,0.4)] score-change">
             {score.isTieBreak ? score.tieBreakPoints.them : (score.points.them === 4 ? 'AD' : POINT_VALUES[score.points.them])}
-          </span>
-          {!isKillerPoint && score.points.them === 4 && <div className="absolute bottom-12 bg-red-500 text-white px-10 py-3 rounded-full font-black text-2xl uppercase">VANTAGGIO</div>}
+          </div>
+          {!isKillerPoint && score.points.them === 4 && <div className="mt-[-1rem] bg-red-500 text-white px-4 py-1 rounded-full font-black text-[10px] uppercase">VANTAGGIO</div>}
+          <div className="absolute inset-0 z-0" onClick={() => updateScore('them')}></div>
         </div>
       </main>
 
-      <footer className="p-6 grid grid-cols-1 lg:grid-cols-3 gap-6 bg-slate-900 border-t border-slate-800 shadow-2xl z-20">
-        <div className="bg-black/50 p-6 rounded-[2.5rem] flex items-center justify-around border border-slate-700">
-          <div className="text-center">
-            <p className="text-[12px] text-slate-500 font-black uppercase mb-2 tracking-widest text-center">GIOCHI</p>
-            <div className="text-6xl font-black flex gap-4 text-blue-400 justify-center leading-none">
-              {score.games.us}<span className="text-slate-800">/</span><span className="text-red-400">{score.games.them}</span>
+      {/* Footer ultra-compatto */}
+      <footer className="bg-slate-900 p-3 flex flex-col gap-2 border-t border-white/5 shrink-0">
+        <div className="flex items-stretch gap-2 h-16">
+          <div className="flex-1 bg-black/40 rounded-2xl flex items-center justify-around border border-white/5">
+            <div className="text-center">
+              <span className="text-[7px] text-slate-500 font-black uppercase tracking-tighter block">GIOCHI</span>
+              <span className="text-2xl font-black leading-none text-blue-400">{score.games.us}<span className="text-slate-700 mx-1">/</span><span className="text-red-400">{score.games.them}</span></span>
+            </div>
+            <div className="w-[1px] h-6 bg-white/5"></div>
+            <div className="text-center">
+              <span className="text-[7px] text-slate-500 font-black uppercase tracking-tighter block">SET</span>
+              <span className="text-2xl font-black leading-none text-blue-400">{score.sets.us}<span className="text-slate-700 mx-1">/</span><span className="text-red-400">{score.sets.them}</span></span>
             </div>
           </div>
-          <div className="w-px h-16 bg-slate-800 mx-4" />
-          <div className="text-center">
-            <p className="text-[12px] text-slate-500 font-black uppercase mb-2 tracking-widest text-center">SET</p>
-            <div className="text-6xl font-black flex gap-4 text-blue-400 justify-center leading-none">
-              {score.sets.us}<span className="text-slate-800">/</span><span className="text-red-400">{score.sets.them}</span>
-            </div>
+          
+          <div className="flex-1 bg-black/40 rounded-2xl flex flex-wrap items-center justify-center gap-1.5 p-2 border border-white/5">
+            {score.setHistory.length > 0 ? score.setHistory.map((s, i) => (
+              <span key={i} className="text-[10px] font-black bg-slate-800 px-2 py-1 rounded-lg text-slate-300 border border-white/5">{s.us}-{s.them}</span>
+            )) : <span className="text-[9px] text-slate-600 font-black italic uppercase">In Corso...</span>}
           </div>
         </div>
 
-        <div className="bg-black/50 p-6 rounded-[2.5rem] flex flex-col justify-center border border-slate-700">
-          <p className="text-[12px] text-slate-500 font-black uppercase mb-3 text-center tracking-widest">SET PRECEDENTI</p>
-          <div className="flex justify-center gap-3">
-            {score.setHistory.map((s, i) => (
-              <span key={i} className="bg-slate-800 px-5 py-2 rounded-2xl text-xl font-black text-slate-300 border border-slate-600 shadow-lg">
-                {s.us}-{s.them}
-              </span>
-            ))}
-            {score.setHistory.length === 0 && <span className="text-slate-600 text-sm font-bold italic uppercase tracking-widest">In Corso</span>}
-          </div>
-        </div>
-
-        <div className="bg-black/50 p-6 rounded-[2.5rem] border border-slate-700 flex flex-col gap-4 shadow-inner">
-          <div className="flex flex-col gap-2">
-            <select value={config.rule66} onChange={(e) => setConfig(p => ({...p, rule66: e.target.value as Rule66}))} className="w-full bg-slate-900 text-blue-400 p-3 rounded-xl text-[11px] font-black outline-none border border-slate-700 appearance-none text-center uppercase tracking-widest cursor-pointer">
-              <option value={Rule66.TIE_BREAK}>Tie-Break al 6-6</option>
-              <option value={Rule66.PRO_SET_8}>Pro-Set (8 game)</option>
+        <div className="flex gap-2">
+          <div className="flex-[2] grid grid-cols-2 gap-2">
+            <select value={config.rule66} onChange={(e) => setConfig(p => ({...p, rule66: e.target.value as Rule66}))} className="bg-slate-800 text-[9px] font-black p-3 rounded-xl outline-none border border-white/5 uppercase tracking-tighter text-blue-400 appearance-none text-center">
+              <option value={Rule66.TIE_BREAK}>6-6 Tie</option>
+              <option value={Rule66.PRO_SET_8}>8-Game</option>
             </select>
-            <select value={config.deuceMode} onChange={(e) => setConfig(p => ({...p, deuceMode: e.target.value as DeuceMode}))} className="w-full bg-slate-900 text-yellow-500 p-3 rounded-xl text-[11px] font-black outline-none border border-slate-700 appearance-none text-center uppercase tracking-widest cursor-pointer">
-              <option value={DeuceMode.IMMEDIATE_KILLER}>Punto Killer subito</option>
-              <option value={DeuceMode.ADV_X2_THEN_KILLER}>Vantaggi x2 poi Killer</option>
+            <select value={config.deuceMode} onChange={(e) => setConfig(p => ({...p, deuceMode: e.target.value as DeuceMode}))} className="bg-slate-800 text-[9px] font-black p-3 rounded-xl outline-none border border-white/5 uppercase tracking-tighter text-yellow-500 appearance-none text-center">
+              <option value={DeuceMode.IMMEDIATE_KILLER}>Killer Subito</option>
+              <option value={DeuceMode.ADV_X2_THEN_KILLER}>Vantaggi x2</option>
             </select>
           </div>
-          <div className="flex gap-4">
-            <button onClick={() => undo()} disabled={history.length === 0} className={`flex-1 py-4 rounded-2xl font-black uppercase text-xs transition-all ${history.length === 0 ? 'bg-slate-800 text-slate-600 cursor-not-allowed' : 'bg-orange-600/20 text-orange-500 border border-orange-500/50 hover:bg-orange-500 hover:text-white'}`}>Annulla</button>
-            <button onClick={() => { if(window.confirm("Resettare il match?")) resetMatch(); }} className="flex-1 bg-red-600/10 text-red-500 border border-red-500/30 py-4 rounded-2xl font-black uppercase text-xs hover:bg-red-600 hover:text-white transition-all shadow-lg">Reset Match</button>
+          <div className="flex-1 flex gap-2">
+            <button onClick={() => undo()} disabled={history.length === 0} className={`flex-1 rounded-xl flex items-center justify-center ${history.length === 0 ? 'bg-slate-800/50 text-slate-700' : 'bg-orange-500 text-white shadow-lg'}`}>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
+            </button>
+            <button onClick={() => { if(window.confirm("Reset?")) resetMatch(); }} className="flex-1 bg-red-600/20 text-red-500 border border-red-500/30 rounded-xl flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+            </button>
           </div>
         </div>
       </footer>

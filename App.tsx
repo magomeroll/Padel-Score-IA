@@ -35,6 +35,18 @@ const App: React.FC = () => {
   const [statusMsg, setStatusMsg] = useState('Pronto');
   const [lastAction, setLastAction] = useState<string>('');
   
+  // Gestione API Key
+  const [apiKey, setApiKey] = useState<string>(() => localStorage.getItem('GEMINI_API_KEY') || '');
+  const [showKeyModal, setShowKeyModal] = useState<boolean>(!localStorage.getItem('GEMINI_API_KEY'));
+  const [tempKey, setTempKey] = useState(apiKey);
+
+  const saveApiKey = () => {
+    localStorage.setItem('GEMINI_API_KEY', tempKey);
+    setApiKey(tempKey);
+    setShowKeyModal(false);
+    setStatusMsg('Chiave Salvata');
+  };
+
   const scoreRef = useRef(score);
   const configRef = useRef(config);
   const isLiveRef = useRef(false);
@@ -163,10 +175,14 @@ const App: React.FC = () => {
   }, [updateScore, undo, resetMatch]);
 
   const startLive = async () => {
+    if (!apiKey) {
+      setShowKeyModal(true);
+      return;
+    }
+
     try {
       setStatusMsg('Sincronizzazione...');
       
-      // Riattiva o crea gli AudioContext
       if (!audioContextInRef.current) {
         audioContextInRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
         audioContextOutRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
@@ -177,16 +193,11 @@ const App: React.FC = () => {
         await audioContextOutRef.current.resume();
       }
 
-      if (!process.env.API_KEY) {
-        setStatusMsg('Configura API Key');
-        return;
-      }
-
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true }).catch(() => {
         throw new Error("PERMISSION_DENIED");
       });
 
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const ai = new GoogleGenAI({ apiKey: apiKey });
       const sessionPromise = ai.live.connect({
         model: 'gemini-2.5-flash-native-audio-preview-09-2025',
         config: {
@@ -236,7 +247,7 @@ const App: React.FC = () => {
           },
           onerror: (e) => {
             console.error(e);
-            setStatusMsg('Errore API');
+            setStatusMsg('Errore API/Key');
             setIsLive(false);
           },
           onclose: () => setIsLive(false)
@@ -258,6 +269,42 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#020617] text-white flex flex-col font-sans select-none overflow-hidden">
+      {/* Key Modal */}
+      {showKeyModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-xl p-6">
+          <div className="bg-slate-900 border-2 border-blue-500/50 rounded-[2.5rem] w-full max-w-md p-8 shadow-[0_0_50px_rgba(59,130,246,0.3)] animate-fade-in">
+            <h2 className="text-3xl font-black italic text-blue-500 mb-2">CONFIGURA IA</h2>
+            <p className="text-slate-400 text-sm mb-6">Inserisci la tua Gemini API Key per attivare l'arbitro vocale. Verrà salvata solo su questo dispositivo.</p>
+            <input 
+              type="password" 
+              value={tempKey} 
+              onChange={(e) => setTempKey(e.target.value)}
+              placeholder="Incolla qui la chiave..."
+              className="w-full bg-black/50 border border-slate-700 rounded-2xl p-4 text-blue-400 font-mono text-sm mb-6 outline-none focus:border-blue-500 transition-colors"
+            />
+            <div className="flex gap-3">
+              <button 
+                onClick={saveApiKey}
+                className="flex-1 bg-blue-600 py-4 rounded-2xl font-black uppercase text-xs shadow-[0_4px_0_#1d4ed8] active:translate-y-1 active:shadow-none transition-all"
+              >
+                Salva e Chiudi
+              </button>
+              {apiKey && (
+                <button 
+                  onClick={() => setShowKeyModal(false)}
+                  className="px-6 bg-slate-800 py-4 rounded-2xl font-black uppercase text-xs"
+                >
+                  Annulla
+                </button>
+              )}
+            </div>
+            <p className="mt-6 text-[10px] text-slate-500 text-center uppercase tracking-widest font-bold">
+              Non hai una chiave? <a href="https://aistudio.google.com/app/apikey" target="_blank" className="text-blue-500 underline">Ottienila gratis qui</a>
+            </p>
+          </div>
+        </div>
+      )}
+
       <header className="p-4 flex justify-between items-center bg-slate-900/80 border-b border-slate-800 backdrop-blur-md z-10 shadow-lg">
         <div className="flex flex-col">
           <h1 className="text-2xl font-black italic text-blue-500 tracking-tighter leading-none">PADEL VOICE <span className="text-white">ULTRA</span></h1>
@@ -266,17 +313,22 @@ const App: React.FC = () => {
             <span className="text-[10px] uppercase font-black text-slate-400 tracking-widest">{statusMsg}</span>
           </div>
         </div>
-        <div className="flex items-center gap-4">
-          {lastAction && (
-            <div className="hidden md:block bg-blue-500/10 border border-blue-500/30 px-4 py-2 rounded-xl text-[10px] font-black uppercase text-blue-400 animate-fade-in">
-              {lastAction}
-            </div>
-          )}
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={() => setShowKeyModal(true)}
+            className="p-3 bg-slate-800 hover:bg-slate-700 rounded-xl transition-colors text-slate-400"
+            title="Impostazioni API"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          </button>
           <button 
             onClick={isLive ? () => { sessionRef.current?.close(); setIsLive(false); } : startLive}
-            className={`px-8 py-4 rounded-2xl font-black text-xs uppercase transition-all shadow-[0_6px_0_#1d4ed8] ${isLive ? 'bg-red-600 shadow-[0_6px_0_#991b1b]' : 'bg-blue-600'} active:translate-y-1 active:shadow-none hover:scale-105`}
+            className={`px-6 md:px-8 py-4 rounded-2xl font-black text-xs uppercase transition-all shadow-[0_6px_0_#1d4ed8] ${isLive ? 'bg-red-600 shadow-[0_6px_0_#991b1b]' : 'bg-blue-600'} active:translate-y-1 active:shadow-none hover:scale-105`}
           >
-            {isLive ? 'CHIUDI SESSIONE' : '🎤 ENTRA IN CAMPO'}
+            {isLive ? 'STOP ARBITRO' : '🎤 ATTIVA VOCE'}
           </button>
         </div>
       </header>
